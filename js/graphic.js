@@ -40,16 +40,3 @@ export function scaleCanvas(canvas, width, height) {
 	}
 	g.scale(ratio, ratio);
 }
-
-export function polyline(g, array) {
-	let first = array.shift();
-	g.moveTo(first.x, first.y);
-	for(let point of array) {
-		g.lineTo(point.x, point.y);
-	}
-}
-
-export function polygon(g, array) {
-	polyline(g, array);
-	g.closePath();
-}
