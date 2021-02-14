@@ -1,5 +1,5 @@
 import { DEBUG } from './env.js';
-import { createStream, adoptStream, get, contains, polygon } from './util.js';
+import { Timer, createStream, adoptStream, get, contains, polygon } from './util.js';
 
 export class Node {
 	constructor(x, y) {
@@ -172,7 +172,6 @@ export class Button extends Element {
 		g.beginPath();
 		g.arc(x + width / 2, y + height / 2, (this.stream.on ? 12 : 14), 2 * Math.PI, 0);
 		g.fill();
-		g.fillStyle = 'black';
 		g.beginPath();
 		g.arc(x + width / 2, y + height / 2, (this.stream.on ? 12 : 14), 2 * Math.PI, 0);
 		g.stroke();
@@ -332,6 +331,45 @@ export class Light extends Element {
 		g.fillStyle = 'black';
 		for(let node of this.node) {
 			node.render(g);
+		}
+	}
+}
+
+export class Clock extends Element {
+	constructor(x, y) {
+		super(x, y, { width: 50, height: 50 });
+		let source = new Source(x + 50, y + 25);
+		this.node.push(source);
+		this.stream = source.stream[0];
+		this.timer = new Timer(30);
+		this.on = false;
+	}
+	update() {
+		super.update();
+		if(this.on) {
+			if(this.timer.count()) {
+				this.stream.on = !this.stream.on;
+			}
+		}
+	}
+	render(g) {
+		super.render(g);
+		let { x, y } = this.point;
+		let { width, height } = this.size;
+		let size = this.on ? 22 : 30;
+		g.fillStyle = 'grey';
+		g.beginPath();
+		g.rect(x + width / 2 - size / 2, y + height / 2 - size / 2, size , size );
+		g.fill();
+		g.beginPath();
+		g.rect(x + width / 2 - size / 2, y + height / 2 - size / 2, size , size );
+		g.stroke();
+	}
+	onclick() {
+		this.on = !this.on;
+		if(!this.on) {
+			this.timer.reset();
+			this.stream.on = false;
 		}
 	}
 }
