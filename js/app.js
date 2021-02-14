@@ -20,8 +20,8 @@ export default class App {
 		let { g } = this.viewport;
 		let view = this.viewport.getView();
 		g.clearRect(view.x, view.y, view.width, view.height);
-		this.group.node.render(g);
 		this.group.wire.render(g);
+		this.group.node.render(g);
 		this.group.element.render(g);
 	}
 	add(type) {
