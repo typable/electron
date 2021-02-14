@@ -1,5 +1,9 @@
+const DEVICE_PIXEL_RATIO = window.devicePixelRatio || 1;
+
 export class Group {
-	list = [];
+	constructor() {
+		this.list = [];
+	}
 	update() {
 		for(let item of this.list) {
 			item.update();
@@ -15,6 +19,37 @@ export class Group {
 	add(type) {
 		this.list.push(type);
 	}
+	get() {
+		return this.list;
+	}
+}
+
+export class Rect {
+	constructor(x, y, width, height) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+	}
+}
+
+export function scaleCanvas(canvas, width, height) {
+	const g = canvas.getContext('2d');
+	const backingStoreRatio = g.webkitBackingStorePixelRatio || 1;
+	const ratio = DEVICE_PIXEL_RATIO / backingStoreRatio;
+	if(DEVICE_PIXEL_RATIO != backingStoreRatio) {
+		canvas.width = width * ratio;
+		canvas.height = height * ratio;
+		canvas.style.width = width + 'px';
+		canvas.style.height = height + 'px';
+	}
+	else {
+		canvas.width = width;
+		canvas.height = height;
+		canvas.style.width = '';
+		canvas.style.height = '';
+	}
+	g.scale(ratio, ratio);
 }
 
 export function createStream(source) {
@@ -75,12 +110,4 @@ export function polyline(g, array) {
 export function polygon(g, array) {
 	polyline(g, array);
 	g.closePath();
-}
-
-export function transform(a, scale) {
-	return a * 1 / scale;
-}
-
-export function translate(a, scale, b) {
-	return a / scale - b;
 }

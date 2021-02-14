@@ -1,13 +1,109 @@
 import { DEBUG } from './env.js';
 import { createStream, adoptStream, get, contains, polygon } from './util.js';
 
+export class Node {
+	constructor(x, y) {
+		this.point = { x, y };
+		this.radius = 5;
+		this.on = false;
+		this.stream = [];
+	}
+	update() {
+		let active = false;
+		for(let stream of this.stream) {
+			if(stream.on) {
+				active = true;
+				break;
+			}
+		}
+		this.on = active;
+	}
+	render(g) {
+		let { x, y } = this.point;
+		g.fillStyle = 'white';
+		g.beginPath();
+		g.arc(x, y, this.radius, 2 * Math.PI, 0);
+		g.fill();
+		g.beginPath();
+		g.arc(x, y, this.radius, 2 * Math.PI, 0);
+		g.fillStyle = 'black';
+		g[this.on ? 'fill' : 'stroke']();
+		if(DEBUG) {
+			g.font = '14px monospace';
+			let list = [];
+			for(let stream of this.stream) {
+				list.push(stream.index + (stream.on ? '*' : ''));
+			}
+			g.fillText(`[${list.join(',')}]`, x + 8, y - 8);
+		}
+	}
+}
+
+export class Source extends Node {
+	constructor(x, y) {
+		super(x, y);
+		this.stream.push(createStream(this));
+	}
+}
+
+export class Wire {
+	constructor(...node) {
+		if(node.length !== 2) {
+			throw new Error('A wire requires two Nodes!');
+		}
+		if(node[0] === node[1]) {
+			throw new Error('A wire requires two different Nodes!');
+		}
+		this.node = node;
+	}
+	update() {
+		let [ begin, end ] = this.node;
+		if(begin.stream.length > 0) {
+			for(let stream of begin.stream) {
+				if(!contains(stream, end.stream)) {
+					end.stream.push(adoptStream(stream));
+				}
+			}
+		}
+		if(end.stream.length > 0) {
+			for(let stream of end.stream) {
+				if(!contains(stream, begin.stream)) {
+					begin.stream.push(adoptStream(stream));
+				}
+			}
+		}
+		for(let stream of begin.stream) {
+			let current = get(stream, end.stream);
+			if(current) {
+				if(stream.index < current.index) {
+					current.on = stream.on;
+				}
+			}
+		}
+		for(let stream of end.stream) {
+			let current = get(stream, begin.stream);
+			if(current) {
+				if(stream.index < current.index) {
+					current.on = stream.on;
+				}
+			}
+		}
+	}
+	render(g) {
+		let [ begin, end ] = this.node;
+		g.beginPath();
+		g.moveTo(begin.point.x, begin.point.y);
+		g.lineTo(end.point.x, end.point.y);
+		g.stroke();
+	}
+}
+
 export class Element {
-	point = null;
-	size = null;
-	node = [];
-	constructor(x, y, size) {
+	constructor(x, y, size, radius) {
 		this.point = { x, y };
 		this.size = size;
+		this.radius = radius;
+		this.node = [];
 	}
 	update() {
 		for(let node of this.node) {
@@ -37,9 +133,6 @@ export class Switch extends Element {
 		this.node.push(source);
 		this.stream = source.stream[0];
 	}
-	onclick(point) {
-		this.stream.on = !this.stream.on;
-	}
 	render(g) {
 		super.render(g);
 		let px = this.point.x + this.size.width / 2;
@@ -59,6 +152,9 @@ export class Switch extends Element {
 		polygon(g, array);
 		g.stroke();
 	}
+	onclick() {
+		this.stream.on = !this.stream.on;
+	}
 }
 
 export class Button extends Element {
@@ -67,12 +163,6 @@ export class Button extends Element {
 		let source = new Source(x + 50, y + 25);
 		this.node.push(source);
 		this.stream = source.stream[0];
-	}
-	onpress(point) {
-		this.stream.on = true;
-	}
-	onrelease(point) {
-		this.stream.on = false;
 	}
 	render(g) {
 		super.render(g);
@@ -87,10 +177,15 @@ export class Button extends Element {
 		g.arc(x + width / 2, y + height / 2, (this.stream.on ? 12 : 14), 2 * Math.PI, 0);
 		g.stroke();
 	}
+	onpress() {
+		this.stream.on = true;
+	}
+	onrelease() {
+		this.stream.on = false;
+	}
 }
 
 export class Gate extends Element {
-	name = null;
 	constructor(x, y, size, name) {
 		super(x, y, size);
 		this.name = name;
@@ -211,20 +306,14 @@ export class XnorGate extends Gate {
 	}
 }
 
-export class Light {
-	point = null;
-	radius = null;
+export class Light extends Element {
 	constructor(x, y) {
-		this.point = { x, y };
-		this.radius = 18;
-		this.node = new Node(x - this.radius, y);
-	}
-	update() {
-		this.node.update();
+		super(x, y, null, 18);
+		this.node.push(new Node(x - this.radius, y));
 	}
 	render(g) {
 		let { x, y } = this.point;
-		g.fillStyle = this.node.on ? 'yellow' : 'white';
+		g.fillStyle = this.node[0].on ? 'yellow' : 'white';
 		g.beginPath();
 		g.arc(x, y, this.radius, 2 * Math.PI, 0);
 		g.fill();
@@ -241,112 +330,8 @@ export class Light {
 		g.lineTo(x + this.radius * Math.cos(3 * -angle), y + this.radius * Math.sin(3 * -angle));
 		g.stroke();
 		g.fillStyle = 'black';
-		this.node.render(g);
-	}
-	onclick(point) {
-		console.log('LIGHT');
-	}
-}
-
-export class Node {
-	point = null;
-	on = false;
-	stream = [];
-	radius = null;
-	constructor(x, y) {
-		this.point = { x, y };
-		this.radius = 5;
-	}
-	update() {
-		let active = false;
-		for(let stream of this.stream) {
-			if(stream.on) {
-				active = true;
-				break;
-			}
+		for(let node of this.node) {
+			node.render(g);
 		}
-		this.on = active;
-	}
-	render(g) {
-		let { x, y } = this.point;
-		g.fillStyle = 'white';
-		g.beginPath();
-		g.arc(x, y, this.radius, 2 * Math.PI, 0);
-		g.fill();
-		g.beginPath();
-		g.arc(x, y, this.radius, 2 * Math.PI, 0);
-		g.fillStyle = 'black';
-		g[this.on ? 'fill' : 'stroke']();
-		if(DEBUG) {
-			g.font = '14px monospace';
-			let list = [];
-			for(let stream of this.stream) {
-				list.push(stream.index + (stream.on ? '*' : ''));
-			}
-			g.fillText(`[${list.join(',')}]`, x + 8, y - 8);
-		}
-	}
-	onclick(point) {
-		console.log('NODE');
-	}
-}
-
-export class Source extends Node {
-	constructor(x, y) {
-		super(x, y);
-		this.stream.push(createStream(this));
-	}
-}
-
-export class Wire {
-	node = [];
-	constructor(...node) {
-		if(node.length !== 2) {
-			throw new Error('A wire requires two Nodes!');
-		}
-		if(node[0] === node[1]) {
-			throw new Error('A wire requires two different Nodes!');
-		}
-		this.node = node;
-	}
-	update() {
-		let [ begin, end ] = this.node;
-		if(begin.stream.length > 0) {
-			for(let stream of begin.stream) {
-				if(!contains(stream, end.stream)) {
-					end.stream.push(adoptStream(stream));
-				}
-			}
-		}
-		if(end.stream.length > 0) {
-			for(let stream of end.stream) {
-				if(!contains(stream, begin.stream)) {
-					begin.stream.push(adoptStream(stream));
-				}
-			}
-		}
-		for(let stream of begin.stream) {
-			let current = get(stream, end.stream);
-			if(current) {
-				if(stream.index < current.index) {
-					current.on = stream.on;
-				}
-			}
-		}
-		for(let stream of end.stream) {
-			let current = get(stream, begin.stream);
-			if(current) {
-				if(stream.index < current.index) {
-					current.on = stream.on;
-				}
-			}
-		}
-	}
-	render(g) {
-		let [ begin, end ] = this.node;
-		g.beginPath();
-		g.moveTo(begin.point.x, begin.point.y);
-		g.lineTo(end.point.x, end.point.y);
-		g.stroke();
 	}
 }
