@@ -213,9 +213,11 @@ export class XnorGate extends Gate {
 
 export class Light {
 	point = null;
+	radius = null;
 	constructor(x, y) {
 		this.point = { x, y };
-		this.node = new Node(x, y + 18);
+		this.radius = 18;
+		this.node = new Node(x - this.radius, y);
 	}
 	update() {
 		this.node.update();
@@ -224,21 +226,25 @@ export class Light {
 		let { x, y } = this.point;
 		g.fillStyle = this.node.on ? 'yellow' : 'white';
 		g.beginPath();
-		g.arc(x + 18, y + 18, 18, 2 * Math.PI, 0);
+		g.arc(x, y, this.radius, 2 * Math.PI, 0);
 		g.fill();
 		g.beginPath();
-		g.arc(x + 18, y + 18, 18, 2 * Math.PI, 0);
+		g.arc(x, y, this.radius, 2 * Math.PI, 0);
 		g.stroke();
 		g.beginPath();
-		g.moveTo(x + 5, y + 5);
-		g.lineTo(x + 30, y + 30);
+		let angle = 1 / 4 * Math.PI;
+		g.moveTo(x + this.radius * Math.cos(-angle), y + this.radius * Math.sin(-angle));
+		g.lineTo(x + this.radius * Math.cos(3 * angle), y + this.radius * Math.sin(3 * angle));
 		g.stroke();
 		g.beginPath();
-		g.moveTo(x + 30, y + 5);
-		g.lineTo(x + 5, y + 30);
+		g.moveTo(x + this.radius * Math.cos(angle), y + this.radius * Math.sin(angle));
+		g.lineTo(x + this.radius * Math.cos(3 * -angle), y + this.radius * Math.sin(3 * -angle));
 		g.stroke();
 		g.fillStyle = 'black';
 		this.node.render(g);
+	}
+	onclick(point) {
+		console.log('LIGHT');
 	}
 }
 
@@ -246,8 +252,10 @@ export class Node {
 	point = null;
 	on = false;
 	stream = [];
+	radius = null;
 	constructor(x, y) {
 		this.point = { x, y };
+		this.radius = 5;
 	}
 	update() {
 		let active = false;
@@ -263,10 +271,10 @@ export class Node {
 		let { x, y } = this.point;
 		g.fillStyle = 'white';
 		g.beginPath();
-		g.arc(x, y, 5, 2 * Math.PI, 0);
+		g.arc(x, y, this.radius, 2 * Math.PI, 0);
 		g.fill();
 		g.beginPath();
-		g.arc(x, y, 5, 2 * Math.PI, 0);
+		g.arc(x, y, this.radius, 2 * Math.PI, 0);
 		g.fillStyle = 'black';
 		g[this.on ? 'fill' : 'stroke']();
 		if(DEBUG) {
@@ -275,8 +283,11 @@ export class Node {
 			for(let stream of this.stream) {
 				list.push(stream.index + (stream.on ? '*' : ''));
 			}
-			g.fillText(`[${list.join(', ')}]`, x + 8, y - 8);
+			g.fillText(`[${list.join(',')}]`, x + 8, y - 8);
 		}
+	}
+	onclick(point) {
+		console.log('NODE');
 	}
 }
 

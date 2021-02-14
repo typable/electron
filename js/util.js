@@ -1,3 +1,22 @@
+export class Group {
+	list = [];
+	update() {
+		for(let item of this.list) {
+			item.update();
+		}
+	}
+	render(g) {
+		for(let item of this.list) {
+			g.save();
+			item.render(g);
+			g.restore();
+		}
+	}
+	add(type) {
+		this.list.push(type);
+	}
+}
+
 export function createStream(source) {
 	return {
 		source,
@@ -32,7 +51,15 @@ export function get(stream, list) {
 
 export function collide(item, point) {
 	if(item && item.point && point) {
-		return item.point.x < point.x && item.point.x + 50 > point.x && item.point.y < point.y && item.point.y + 50 > point.y;
+		let { x, y } = item.point;
+		if(item.size) {
+			let { width, height } = item.size;
+			return x < point.x && x + width > point.x && y < point.y && y + height > point.y;
+		}
+		if(item.radius) {
+			let { radius } = item;
+			return Math.sqrt(Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2)) < radius;
+		}
 	}
 	return false;
 }
