@@ -38,11 +38,12 @@ export default class App {
 	onclick(event) {
 		let point = this.viewport.get(event.layerX, event.layerY);
 		if(event.button === 0) {
-			for(let item of this.group.element.get()) {
-				if(item.onclick) {
-					if(collide(item, point)) {
+			for(let item of [...this.group.element.get()].reverse()) {
+				if(collide(item, point)) {
+					if(item.onclick) {
 						item.onclick();
 					}
+					break;
 				}
 			}
 		}
@@ -50,11 +51,12 @@ export default class App {
 	onpress(event) {
 		let point = this.viewport.get(event.layerX, event.layerY);
 		if(event.button === 0) {
-			for(let item of this.group.element.get()) {
-				if(item.onpress) {
-					if(collide(item, point)) {
+			for(let item of [...this.group.element.get()].reverse()) {
+				if(collide(item, point)) {
+					if(item.onpress) {
 						item.onpress();
 					}
+					break;
 				}
 			}
 		}
