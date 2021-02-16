@@ -81,6 +81,22 @@ export default class App {
 				this.viewport.drag = true;
 			}
 		}
+		if(this.mode === MODE.move) {
+			if(event.button === 0) {
+				for(let item of [...this.group.element.get()].reverse()) {
+					if(collide(item, point)) {
+						let { origin, scale } = this.viewport;
+						this.viewport.offset = {
+							x: event.layerX / scale - item.point.x,
+							y: event.layerY / scale - item.point.y
+						};
+						this.viewport.current = item;
+						this.viewport.drag = true;
+						break;
+					}
+				}
+			}
+		}
 		event.preventDefault();
 	}
 	onrelease(event) {
@@ -95,6 +111,12 @@ export default class App {
 			}
 			if(event.button === 1) {
 				this.viewport.drag = false;
+			}
+		}
+		if(this.mode === MODE.move) {
+			if(event.button === 0) {
+				this.viewport.drag = false;
+				this.viewport.current = null;
 			}
 		}
 	}
@@ -114,11 +136,39 @@ export default class App {
 				this.viewport.origin = point;
 			}
 		}
+		if(this.mode === MODE.move) {
+			if(drag) {
+				let item = this.viewport.current;
+				if(item) {
+					let point = {
+						x: event.layerX / scale - offset.x,
+						y: event.layerY / scale - offset.y
+					};
+					item.node.forEach((node) => {
+						let delta = {
+							x: node.point.x - item.point.x,
+							y: node.point.y - item.point.y
+						};
+						node.point = {
+							x: point.x + delta.x,
+							y: point.y + delta.y
+						};
+					});
+					item.point = point;
+				}
+			}
+		}
 		event.preventDefault();
 	}
 	onleave(event) {
 		if(this.mode === MODE.default) {
 			this.viewport.drag = false;
+		}
+		if(this.mode === MODE.move) {
+			if(event.button === 0) {
+				this.viewport.drag = false;
+				this.viewport.current = null;
+			}
 		}
 	}
 }
@@ -133,6 +183,7 @@ class Viewport {
 		this.drag = false;
 		this.origin = { x: 0, y: 0 };
 		this.offset = { x: 0, y: 0 };
+		this.current = null;
 	}
 	move(point) {
 		this.g.translate(point.x, point.y);
