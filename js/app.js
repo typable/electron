@@ -1,6 +1,11 @@
 import { Group, Rect, scaleCanvas, collide } from './util.js';
 import { Node, Wire, Element } from './type.js';
 
+const MODE = {
+	default: 'default',
+	move: 'move'
+};
+
 export default class App {
 	constructor() {
 		this.viewport = new Viewport();
@@ -10,6 +15,7 @@ export default class App {
 			wire: new Group(),
 			element: new Group()
 		};
+		this.setMode(MODE.default);
 	}
 	update() {
 		this.group.node.update();
@@ -35,72 +41,85 @@ export default class App {
 			this.group.element.add(type);
 		}
 	}
+	setMode(mode) {
+		this.mode = mode;
+	}
 	onclick(event) {
 		let point = this.viewport.get(event.layerX, event.layerY);
-		if(event.button === 0) {
-			for(let item of [...this.group.element.get()].reverse()) {
-				if(collide(item, point)) {
-					if(item.onclick) {
-						item.onclick();
+		if(this.mode === MODE.default) {
+			if(event.button === 0) {
+				for(let item of [...this.group.element.get()].reverse()) {
+					if(collide(item, point)) {
+						if(item.onclick) {
+							item.onclick();
+						}
+						break;
 					}
-					break;
 				}
 			}
 		}
 	}
 	onpress(event) {
 		let point = this.viewport.get(event.layerX, event.layerY);
-		if(event.button === 0) {
-			for(let item of [...this.group.element.get()].reverse()) {
-				if(collide(item, point)) {
-					if(item.onpress) {
-						item.onpress();
+		if(this.mode === MODE.default) {
+			if(event.button === 0) {
+				for(let item of [...this.group.element.get()].reverse()) {
+					if(collide(item, point)) {
+						if(item.onpress) {
+							item.onpress();
+						}
+						break;
 					}
-					break;
 				}
 			}
-		}
-		let { origin, scale } = this.viewport;
-		if(event.button === 1) {
-			this.viewport.offset = {
-				x: event.layerX / scale - origin.x,
-				y: event.layerY / scale - origin.y
-			};
-			this.viewport.drag = true;
+			let { origin, scale } = this.viewport;
+			if(event.button === 1) {
+				this.viewport.offset = {
+					x: event.layerX / scale - origin.x,
+					y: event.layerY / scale - origin.y
+				};
+				this.viewport.drag = true;
+			}
 		}
 		event.preventDefault();
 	}
 	onrelease(event) {
 		let point = this.viewport.get(event.layerX, event.layerY);
-		if(event.button === 0) {
-			for(let item of this.group.element.get()) {
-				if(item.onrelease) {
-					item.onrelease();
+		if(this.mode === MODE.default) {
+			if(event.button === 0) {
+				for(let item of this.group.element.get()) {
+					if(item.onrelease) {
+						item.onrelease();
+					}
 				}
 			}
-		}
-		if(event.button === 1) {
-			this.viewport.drag = false;
+			if(event.button === 1) {
+				this.viewport.drag = false;
+			}
 		}
 	}
 	onmove(event) {
 		let { drag, origin, offset, scale } = this.viewport;
-		if(drag) {
-			let point = {
-				x: event.layerX / scale - offset.x,
-				y: event.layerY / scale - offset.y
-			};
-			let delta = {
-				x: point.x - origin.x,
-				y: point.y - origin.y
-			};
-			this.viewport.g.translate(delta.x * scale, delta.y * scale);
-			this.viewport.origin = point;
+		if(this.mode === MODE.default) {
+			if(drag) {
+				let point = {
+					x: event.layerX / scale - offset.x,
+					y: event.layerY / scale - offset.y
+				};
+				let delta = {
+					x: point.x - origin.x,
+					y: point.y - origin.y
+				};
+				this.viewport.g.translate(delta.x * scale, delta.y * scale);
+				this.viewport.origin = point;
+			}
 		}
 		event.preventDefault();
 	}
 	onleave(event) {
-		this.viewport.drag = false;
+		if(this.mode === MODE.default) {
+			this.viewport.drag = false;
+		}
 	}
 }
 
