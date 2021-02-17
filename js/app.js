@@ -87,8 +87,8 @@ export default class App {
 					if(collide(item, point)) {
 						let { origin, scale } = this.viewport;
 						this.viewport.offset = {
-							x: event.layerX / scale - item.point.x,
-							y: event.layerY / scale - item.point.y
+							x: event.layerX - item.point.x,
+							y: event.layerY - item.point.y
 						};
 						this.viewport.current = item;
 						this.viewport.drag = true;
@@ -141,8 +141,8 @@ export default class App {
 				let item = this.viewport.current;
 				if(item) {
 					let point = {
-						x: event.layerX / scale - offset.x,
-						y: event.layerY / scale - offset.y
+						x: event.layerX - offset.x,
+						y: event.layerY - offset.y
 					};
 					item.node.forEach((node) => {
 						let delta = {
