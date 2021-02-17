@@ -132,6 +132,7 @@ export class Switch extends Element {
 		let source = new Source(x + 50, y + 25);
 		this.node.push(source);
 		this.stream = source.stream[0];
+		this.interact = true;
 	}
 	render(g) {
 		super.render(g);
@@ -163,6 +164,7 @@ export class Button extends Element {
 		let source = new Source(x + 50, y + 25);
 		this.node.push(source);
 		this.stream = source.stream[0];
+		this.interact = true;
 	}
 	render(g) {
 		super.render(g);
@@ -343,6 +345,7 @@ export class Clock extends Element {
 		this.stream = source.stream[0];
 		this.timer = new Timer(30);
 		this.on = false;
+		this.interact = true;
 	}
 	update() {
 		super.update();

@@ -24,11 +24,17 @@ export default class App {
 	}
 	render() {
 		let { g } = this.viewport;
+		let { x, y } = this.viewport.origin;
 		let view = this.viewport.getView();
 		g.clearRect(view.x, view.y, view.width, view.height);
 		this.group.wire.render(g);
 		this.group.node.render(g);
 		this.group.element.render(g);
+		g.font = '14px monospace';
+		g.textBaseline = 'top';
+		g.textAlign = 'left';
+		g.fillText('Mode: ' + this.mode.toUpperCase(), view.x + 20, view.y + 20);
+		g.fillText('X: ' + x + ' Y: ' + y, view.x + 20, view.y + 40);
 	}
 	add(type) {
 		if(type instanceof Node) {
@@ -79,6 +85,7 @@ export default class App {
 					y: event.layerY / scale - origin.y
 				};
 				this.viewport.drag = true;
+				this.viewport.setCursor('move');
 			}
 		}
 		if(this.mode === MODE.move) {
@@ -91,7 +98,8 @@ export default class App {
 							y: event.layerY - item.point.y
 						};
 						this.viewport.current = item;
-						this.viewport.drag = true;
+						this.viewport.drag = true
+						this.viewport.setCursor('grabbing');
 						break;
 					}
 				}
@@ -111,12 +119,14 @@ export default class App {
 			}
 			if(event.button === 1) {
 				this.viewport.drag = false;
+				this.viewport.setCursor();
 			}
 		}
 		if(this.mode === MODE.move) {
 			if(event.button === 0) {
 				this.viewport.drag = false;
-				this.viewport.current = null;
+				this.viewport.current = null
+				this.viewport.setCursor();
 			}
 		}
 	}
@@ -134,6 +144,22 @@ export default class App {
 				};
 				this.viewport.g.translate(delta.x * scale, delta.y * scale);
 				this.viewport.origin = point;
+			}
+			else {
+				let point = this.viewport.get(event.layerX, event.layerY);
+				let found = false;
+				for(let item of [...this.group.element.get()].reverse()) {
+					if(item.interact) {
+						if(collide(item, point)) {
+							this.viewport.setCursor('pointer');
+							found = true;
+							break;
+						}
+					}
+				}
+				if(!found) {
+					this.viewport.setCursor();
+				}
 			}
 		}
 		if(this.mode === MODE.move) {
@@ -154,7 +180,21 @@ export default class App {
 							y: point.y + delta.y
 						};
 					});
-					item.point = point;
+					item.point = point
+				}
+			}
+			else {
+				let point = this.viewport.get(event.layerX, event.layerY);
+				let found = false;
+				for(let item of [...this.group.element.get()].reverse()) {
+					if(collide(item, point)) {
+						this.viewport.setCursor('grab');
+						found = true;
+						break;
+					}
+				}
+				if(!found) {
+					this.viewport.setCursor();
 				}
 			}
 		}
@@ -163,12 +203,21 @@ export default class App {
 	onleave(event) {
 		if(this.mode === MODE.default) {
 			this.viewport.drag = false;
+			this.viewport.setCursor();
 		}
 		if(this.mode === MODE.move) {
 			if(event.button === 0) {
 				this.viewport.drag = false;
 				this.viewport.current = null;
+				this.viewport.setCursor();
 			}
+		}
+	}
+	onkeypress(event) {
+		let { code, shiftKey, ctrlKey } = event;
+		if(code === 'Tab' && !shiftKey && !ctrlKey) {
+			this.mode = this.mode === MODE.default ? MODE.move : MODE.default;
+			event.preventDefault();
 		}
 	}
 }
@@ -212,7 +261,11 @@ class Viewport {
 		this.canvas.addEventListener('mousedown', app.onpress.bind(app));
 		this.canvas.addEventListener('mouseup', app.onrelease.bind(app));
 		this.canvas.addEventListener('mousemove', app.onmove.bind(app));
-		this.canvas.addEventListener('mouseleave', app.onleave.bind(app));
-		this.canvas.addEventListener('contextmenu', event => event.preventDefault());
+		document.addEventListener('mouseleave', app.onleave.bind(app));
+		document.addEventListener('keydown', app.onkeypress.bind(app));
+		document.addEventListener('contextmenu', event => event.preventDefault());
+	}
+	setCursor(type) {
+		this.canvas.style.cursor = type || '';
 	}
 }
