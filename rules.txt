@@ -1,0 +1,10 @@
+G O L D E N   R U L E S   O F   E L E C T R O N
+
+- every source creates its own stream
+- every node counts up from the origin of the source
+- a stream sends its state only to the next higher index
+- all not indexed nodes are 0
+- a index can only be set to not indexed nodes
+- a node is on if at least one stream is active
+
+Date 13. Feb 2021
