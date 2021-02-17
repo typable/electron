@@ -376,3 +376,21 @@ export class Clock extends Element {
 		}
 	}
 }
+
+export class Relais extends Gate {
+	constructor(x, y) {
+		super(x, y, { width: 50, height: 50 }, 'REL');
+		this.node.push(new Source(x + 15, y + 50));
+		this.node.push(new Source(x + 35, y + 50));
+		this.node.push(new Node(x, y + 25));
+		this.node.push(new Node(x + 25, y));
+		this.stream = [];
+		this.stream.push(this.node[0].stream[0]);
+		this.stream.push(this.node[1].stream[0]);
+	}
+	update() {
+		super.update();
+		this.stream[0].on = this.node[2].on ? false : this.node[3].on;
+		this.stream[1].on = this.node[2].on ? this.node[3].on : false;
+	}
+}
