@@ -186,6 +186,56 @@ export class Button extends Element {
 	}
 }
 
+export class Input extends Element {
+	constructor(x, y) {
+		super(x, y, { width: 50, height: 50 });
+		let source = new Source(x + 50, y + 25);
+		this.node.push(source);
+		this.stream = source.stream[0];
+		this.interact = true;
+		this.key = null;
+		this.bind = false;
+	}
+	render(g) {
+		super.render(g);
+		let { x, y } = this.point;
+		let { width, height } = this.size;
+		let size = this.stream.on ? 24 : 30;
+		g.fillStyle = this.bind ? '#666' : 'grey';
+		g.beginPath();
+		g.rect(x + width / 2 - size / 2, y + height / 2 - size / 2, size , size );
+		g.fill();
+		g.beginPath();
+		g.rect(x + width / 2 - size / 2, y + height / 2 - size / 2, size , size );
+		g.stroke();
+		if(this.key) {
+			g.font = (this.stream.on ? 12 : 16) + 'px Roboto Mono';
+			g.textBaseline = 'middle';
+			g.textAlign = 'center';
+			g.fillStyle = 'white';
+			g.fillText(this.key.toUpperCase(), x + width / 2, y + height / 2);
+		}
+	}
+	onclick() {
+		this.bind = true;
+		this.key = null;
+	}
+	onkeypress(key) {
+		if(this.bind) {
+			this.key = key;
+			this.bind = false;
+		}
+		else if(this.key === key) {
+			this.stream.on = true;
+		}
+	}
+	onkeyrelease(key) {
+		if(this.key === key) {
+			this.stream.on = false;
+		}
+	}
+}
+
 export class Gate extends Element {
 	constructor(x, y, size, name) {
 		super(x, y, size);
@@ -357,15 +407,20 @@ export class Clock extends Element {
 	}
 	render(g) {
 		super.render(g);
-		let { x, y } = this.point;
-		let { width, height } = this.size;
-		let size = this.on ? 22 : 30;
+		let px = this.point.x + this.size.width / 2;
+		let py = this.point.y + this.size.height / 2;
+		let flip = this.on ? 3 : 0;
+		let array = [
+			[px - 12 + flip, py - 15 + flip],
+			[px + 12 - flip + 2, py],
+			[px - 12 + flip, py + 15 - flip]
+		];
 		g.fillStyle = 'grey';
 		g.beginPath();
-		g.rect(x + width / 2 - size / 2, y + height / 2 - size / 2, size , size );
+		polygon(g, array);
 		g.fill();
 		g.beginPath();
-		g.rect(x + width / 2 - size / 2, y + height / 2 - size / 2, size , size );
+		polygon(g, array);
 		g.stroke();
 	}
 	onclick() {

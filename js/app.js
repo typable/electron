@@ -214,10 +214,31 @@ export default class App {
 		}
 	}
 	onkeypress(event) {
-		let { code, shiftKey, ctrlKey } = event;
-		if(code === 'Tab' && !shiftKey && !ctrlKey) {
+		let { key, shiftKey, ctrlKey } = event;
+		if(key === 'Tab' && !shiftKey && !ctrlKey) {
 			this.mode = this.mode === MODE.default ? MODE.move : MODE.default;
 			event.preventDefault();
+		}
+		if(this.mode === MODE.default) {
+			if(/^[a-z0-9]{1}$/.test(key)) {
+				for(let item of this.group.element.get()) {
+					if(item.onkeypress) {
+						item.onkeypress(key);
+					}
+				}
+			}
+		}
+	}
+	onkeyrelease(event) {
+		let { key, shiftKey, ctrlKey } = event;
+		if(this.mode === MODE.default) {
+			if(/^[a-z0-9]{1}$/.test(key)) {
+				for(let item of this.group.element.get()) {
+					if(item.onkeyrelease) {
+						item.onkeyrelease(key);
+					}
+				}
+			}
 		}
 	}
 }
@@ -263,6 +284,7 @@ class Viewport {
 		this.canvas.addEventListener('mousemove', app.onmove.bind(app));
 		document.addEventListener('mouseleave', app.onleave.bind(app));
 		document.addEventListener('keydown', app.onkeypress.bind(app));
+		document.addEventListener('keyup', app.onkeyrelease.bind(app));
 		document.addEventListener('contextmenu', event => event.preventDefault());
 	}
 	setCursor(type) {
