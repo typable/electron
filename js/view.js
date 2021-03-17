@@ -55,7 +55,10 @@ export default class View {
 			this.app.state.mouse = null;
 			event.preventDefault();
 		};
-		document.body.oncontextmenu = event => event.preventDefault();
+		document.body.oncontextmenu = event => {
+			bindEvent(this, 'onclick', event);
+			event.preventDefault();
+		};
 		window.onresize = () => {
 			let offset = {
 				x: this.point.x + this.origin.x,

@@ -20,37 +20,38 @@ export class Electron extends Game {
 		this.state = state;
 		this.view = new View(this);
 		this.view.onclick = props => {
-			const {x, y, button, event} = props;
-			if(button === 0) {
-				let found = false;
-				for(const element of [...this.state.groups.element.items].reverse()) {
-					if(element.nodes) {
-						for(const node of [...element.nodes].reverse()) {
-							if(collidePoint(node, {x, y})) {
-								node.events[event.type] = event;
-								found = true;
-								break;
-							}
-						}
-					}
-					if(!found) {
-						if(collidePoint(element, {x, y})) {
-							element.events[event.type] = event;
+			const {x, y, button} = props;
+			let found = false;
+			for(const element of [...this.state.groups.element.items].reverse()) {
+				if(element.nodes) {
+					for(const node of [...element.nodes].reverse()) {
+						if(collidePoint(node, {x, y})) {
+							node.events['onclick'] = props;
+							found = true;
 							break;
 						}
 					}
 				}
+				if(!found) {
+					if(collidePoint(element, {x, y})) {
+						element.events['onclick'] = props;
+						break;
+					}
+				}
+			}
+			if(button === 2) {
+				this.state.target = null;
 			}
 		};
 		this.view.ondown = props => {
-			const {x, y, button, event} = props;
+			const {x, y, button} = props;
 			if(button === 0) {
 				let found = false;
 				for(const element of [...this.state.groups.element.items].reverse()) {
 					if(element.nodes) {
 						for(const node of [...element.nodes].reverse()) {
 							if(collidePoint(node, {x, y})) {
-								node.events[event.type] = event;
+								node.events['ondown'] = props;
 								found = true;
 								break;
 							}
@@ -58,7 +59,7 @@ export class Electron extends Game {
 					}
 					if(!found) {
 						if(collidePoint(element, {x, y})) {
-							element.events[event.type] = event;
+							element.events['ondown'] = props;
 							break;
 						}
 					}
@@ -66,15 +67,15 @@ export class Electron extends Game {
 			}
 		};
 		this.view.onup = props => {
-			const {x, y, button, event} = props;
+			const {button} = props;
 			if(button === 0) {
 				for(const element of this.state.groups.element) {
-					element.events[event.type] = event;
+					element.events['onup'] = props;
 				}
 			}
 		};
 		this.view.onmove = props => {
-			const {x, y, button, event} = props;
+			const {x, y} = props;
 			if(!this.view.drag) {
 				let found = false;
 				let target = null;
@@ -96,7 +97,16 @@ export class Electron extends Game {
 						}
 					}
 				}
-				this.cursor = found ? (target instanceof Node ? 'copy' : 'pointer') : null;
+				let cursor = null;
+				if(found) {
+					if(target instanceof Node) {
+						cursor = 'copy';
+					}
+					if(target.interactive) {
+						cursor = 'pointer';
+					}
+				}
+				this.cursor = cursor;
 			}
 		};
 	}
@@ -137,11 +147,11 @@ export class Electron extends Game {
 		g.moveTo(0, -20);
 		g.lineTo(0, 20);
 		g.stroke();
-		g.font = '14px monospace';
+		g.font = '500 14px Roboto';
 		g.textBaseline = 'top';
 		g.textAlign = 'left';
-		g.fillText('Mode: ' + mode.toUpperCase(), x + 20, y + 20);
-		g.fillText('X: ' + -x + ' Y: ' + -y, x + 20, y + 40);
+		g.fillStyle = '#212121';
+		g.fillText(`X: ${-x}  Y: ${-y}`, x + 20, y + 20);
 	}
 	set cursor(type) {
 		this.canvas.style.cursor = type || '';
