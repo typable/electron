@@ -1,15 +1,18 @@
 export class Wire {
-	constructor(...node) {
-		if(node.length !== 2) {
+	constructor(...nodes) {
+		if(nodes.length !== 2) {
 			throw new Error('A wire requires two Nodes!');
 		}
-		if(node[0] === node[1]) {
+		if(nodes[0] === nodes[1]) {
 			throw new Error('A wire requires two different Nodes!');
 		}
-		this.node = node;
+		const [begin, end] = nodes;
+		begin.wires.push(this);
+		end.wires.push(this);
+		this.nodes = nodes;
 	}
 	update() {
-		const[begin, end] = this.node;
+		const [begin, end] = this.nodes;
 		if(begin.streams.length > 0) {
 			for(const stream of begin.streams) {
 				if(!findStream(stream, end.streams)) {
@@ -42,7 +45,7 @@ export class Wire {
 		}
 	}
 	render(g) {
-		const[begin, end] = this.node;
+		const[begin, end] = this.nodes;
 		g.beginPath();
 		g.moveTo(begin.x, begin.y);
 		g.lineTo(end.x, end.y);

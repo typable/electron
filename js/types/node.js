@@ -8,6 +8,7 @@ export class Node extends Surface {
 		super(x, y, new Shape.Circle(5));
 		this.on = false;
 		this.streams = [];
+		this.wires = [];
 		this.parent = null;
 		this.events = {};
 	}
@@ -23,10 +24,24 @@ export class Node extends Surface {
 		const {click} = this.events;
 		if(click) {
 			if(state.target) {
-				if(state.target !== this) {
-					state.groups.wire.add(new Wire(state.target, this));
+				let unique = true;
+				for(const wire of state.target.wires) {
+					const [begin, end] = wire.nodes;
+					if(begin === state.target && end === this) {
+						unique = false;
+						break;
+					}
+					if(begin === this && end === state.target) {
+						unique = false;
+						break;
+					}
 				}
-				state.target = null;
+				if(unique) {
+					if(state.target !== this) {
+						state.groups.wire.add(new Wire(state.target, this));
+					}
+					state.target = null;
+				}
 			}
 			else {
 				state.target = this;
