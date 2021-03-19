@@ -1,4 +1,4 @@
-import { Shape } from 'https://git.typable.dev/std/js/game.js';
+import { Shape } from '../deps.js';
 
 import { Element } from './element.js';
 import { Node, Source } from './node.js';

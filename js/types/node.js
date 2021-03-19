@@ -1,4 +1,4 @@
-import { Surface, Shape } from 'https://git.typable.dev/std/js/game.js';
+import { Surface, Shape } from '../deps.js';
 
 import { state } from '../app.js';
 import { Wire } from './wire.js';
@@ -10,7 +10,6 @@ export class Node extends Surface {
 		this.streams = [];
 		this.wires = [];
 		this.parent = null;
-		this.events = {};
 	}
 	update() {
 		let active = false;
@@ -21,9 +20,9 @@ export class Node extends Surface {
 			}
 		}
 		this.on = active;
-		const {onclick} = this.events;
-		if(onclick) {
-			const {button} = onclick;
+		const {click, contextmenu} = this.events;
+		if(click) {
+			const {button} = click.event;
 			if(button === 0) {
 				if(state.target) {
 					if(state.target.parent !== this.parent) {
@@ -51,15 +50,15 @@ export class Node extends Surface {
 					state.target = this;
 				}
 			}
-			if(button === 2) {
-				for(const wire of this.wires) {
-					wire.eject(this);
-					state.groups.wire.remove(wire);
-				}
-				this.wires = [];
-				if(!(this instanceof Source)) {
-					this.streams = [];
-				}
+		}
+		if(contextmenu) {
+			for(const wire of this.wires) {
+				wire.eject(this);
+				state.groups.wire.remove(wire);
+			}
+			this.wires = [];
+			if(!(this instanceof Source)) {
+				this.streams = [];
 			}
 		}
 	}

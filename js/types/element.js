@@ -1,4 +1,4 @@
-import { Surface, Shape } from 'https://git.typable.dev/std/js/game.js';
+import { Surface, Shape } from '../deps.js';
 
 import { Node, Source } from './node.js';
 
@@ -7,7 +7,6 @@ export class Element extends Surface {
 		super(x, y, shape);
 		this.nodes = [];
 		this.symbols = {};
-		this.events = {};
 	}
 	add(node, symbol) {
 		this.nodes.push(node);
@@ -47,12 +46,12 @@ export class Button extends Element {
 	}
 	update() {
 		super.update();
-		const {ondown, onup} = this.events;
+		const {mousedown, mouseup} = this.events;
 		const {c} = this.symbols;
-		if(ondown) {
+		if(mousedown) {
 			c.active = true;
 		}
-		if(onup) {
+		if(mouseup) {
 			c.active = false;
 		}
 	}

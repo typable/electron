@@ -1,8 +1,7 @@
-import { Game, Group, Shape } from 'https://git.typable.dev/std/js/game.js';
-import { collidePoint } from 'https://git.typable.dev/std/js/collision.js';
+import { Game, Group, collidePoint } from './deps.js';
 
 import View from './view.js';
-import { Node } from './type.js';
+import { Node, Element } from './type.js';
 
 export let state = {
 	mode: 'view',
@@ -19,112 +18,110 @@ export class Electron extends Game {
 		super(window.innerWidth, window.innerHeight);
 		this.state = state;
 		this.view = new View(this);
-		this.view.onclick = props => {
-			const {x, y, button} = props;
-			let found = false;
-			for(const element of [...this.state.groups.element.items].reverse()) {
-				if(element.nodes) {
-					for(const node of [...element.nodes].reverse()) {
-						if(collidePoint(node, {x, y})) {
-							node.events['onclick'] = props;
-							found = true;
-							break;
-						}
-					}
-				}
-				if(!found) {
-					if(collidePoint(element, {x, y})) {
-						element.events['onclick'] = props;
-						break;
-					}
-				}
-			}
-			if(button === 2) {
-				this.state.target = null;
-			}
-		};
-		this.view.ondown = props => {
-			const {x, y, button} = props;
-			if(button === 0) {
-				let found = false;
-				for(const element of [...this.state.groups.element.items].reverse()) {
-					if(element.nodes) {
-						for(const node of [...element.nodes].reverse()) {
-							if(collidePoint(node, {x, y})) {
-								node.events['ondown'] = props;
-								found = true;
-								break;
-							}
-						}
-					}
-					if(!found) {
-						if(collidePoint(element, {x, y})) {
-							element.events['ondown'] = props;
-							break;
-						}
-					}
-				}
-			}
-		};
-		this.view.onup = props => {
-			const {button} = props;
-			if(button === 0) {
-				for(const element of this.state.groups.element) {
-					element.events['onup'] = props;
-				}
-			}
-		};
-		this.view.onmove = props => {
-			const {x, y} = props;
-			if(!this.view.drag) {
-				let found = false;
-				let target = null;
-				for(const element of [...this.state.groups.element.items].reverse()) {
-					if(element.nodes) {
-						for(const node of [...element.nodes].reverse()) {
-							if(collidePoint(node, {x, y})) {
-								found = true;
-								target = node;
-								break;
-							}
-						}
-					}
-					if(!found) {
-						if(collidePoint(element, {x, y})) {
-							found = true;
-							target = element;
-							break;
-						}
-					}
-				}
-				let cursor = null;
-				if(found) {
-					if(target instanceof Node) {
-						cursor = 'copy';
-					}
-					if(target.interactive) {
-						cursor = 'pointer';
-					}
-				}
-				this.cursor = cursor;
-			}
-		};
+		this.bindEvent(this.canvas, 'onclick');
+		this.bindEvent(this.canvas, 'onmousedown');
+		this.bindEvent(this.canvas, 'onmouseup');
+		this.bindEvent(this.canvas, 'onmousemove');
+		this.bindEvent(document.body, 'onmouseleave');
+		this.bindEvent(document.body, 'oncontextmenu');
+		this.bindEvent(window, 'onresize');
+	}
+	populateEvent(event) {
+		const {type} = event;
+		if(type === 'click' || type === 'mousedown' || type === 'mouseup' || type === 'mousemove' || type === 'mouseleave' || type === 'contextmenu') {
+			const {layerX, layerY} = event;
+			event.preventDefault();
+			return { event, ...this.view.get(layerX, layerY) };
+		}
+		return event;
 	}
 	update() {
+		const {click, mousedown, mouseup, mousemove, mouseleave, contextmenu} = this.events;
+		if(click) {
+			const {button} = click.event;
+			if(button === 0) {
+				const {x, y} = click;
+				iterateGroup(this.state.groups.element, item => {
+					if(collidePoint(item, {x, y})) {
+						item.causeEvent(click);
+						return true;
+					}
+				});
+			}
+		}
+		if(mousedown) {
+			const {button, layerX, layerY} = mousedown.event;
+			if(button === 1) {
+				this.view.beginDrag(layerX, layerY);
+				this.cursor = 'move';
+			}
+			if(button === 0) {
+				const {x, y} = mousedown;
+				iterateGroup(this.state.groups.element, item => {
+					if(collidePoint(item, {x, y})) {
+						item.causeEvent(mousedown);
+						return true;
+					}
+				});
+			}
+		}
+		if(mousemove) {
+			const {x, y} = mousemove;
+			const {layerX, layerY} = mousemove.event;
+			this.view.drag(layerX, layerY);
+			this.state.mouse = { x, y };
+			if(!this.view.dragging) {
+				let cursor = null;
+				iterateGroup(this.state.groups.element, item => {
+					if(collidePoint(item, {x, y})) {
+						if(item instanceof Node) {
+							cursor = 'copy';
+						}
+						if(item.interactive) {
+							cursor = 'pointer';
+						}
+						return true;
+					}
+				});
+				this.cursor = cursor;
+			}
+		}
+		if(mouseup) {
+			const {button} = mouseup.event;
+			if(button === 1) {
+				this.view.endDrag();
+				this.state.mouse = null;
+			}
+			if(button === 0) {
+				iterateGroup(this.state.groups.element, item => {
+					item.causeEvent(mouseup);
+				});
+			}
+		}
+		if(mouseleave) {
+			this.view.endDrag();
+			this.state.mouse = null;
+		}
+		if(contextmenu) {
+			const {x, y} = contextmenu;
+			if(this.state.target) {
+				this.state.target = null;
+			}
+			else {
+				iterateGroup(this.state.groups.element, item => {
+					if(collidePoint(item, {x, y})) {
+						item.causeEvent(contextmenu);
+						return true;
+					}
+				});
+			}
+		}
 		const {groups} = this.state;
 		groups.element.update();
 		groups.wire.update();
-		for(const element of groups.element) {
-			if(element.nodes) {
-				for(const node of element.nodes) {
-					node.events = {};
-				}
-			}
-			element.events = {};
-		}
 	}
 	render(g) {
-		const {mode, groups, target, mouse} = this.state;
+		const {groups, target, mouse} = this.state;
 		const {x, y, width, height} = this.view.getView();
 		g.clearRect(x, y, width, height);
 		if(target instanceof Node && mouse) {
@@ -158,5 +155,22 @@ export class Electron extends Game {
 	}
 	get cursor() {
 		return this.canvas.style.cursor;
+	}
+}
+
+function iterateGroup(group, handle) {
+	for(const element of [...group].reverse()) {
+		if(element instanceof Element) {
+			for(const node of [...element.nodes].reverse()) {
+				const done = handle(node);
+				if(done) {
+					return;
+				}
+			}
+		}
+		const done = handle(element);
+		if(done) {
+			return;
+		}
 	}
 }
