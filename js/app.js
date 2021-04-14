@@ -18,107 +18,98 @@ export class Electron extends Game {
 		super(window.innerWidth, window.innerHeight);
 		this.state = state;
 		this.view = new View(this);
-		this.bindEvent(this.canvas, 'onclick');
-		this.bindEvent(this.canvas, 'onmousedown');
-		this.bindEvent(this.canvas, 'onmouseup');
-		this.bindEvent(this.canvas, 'onmousemove');
-		this.bindEvent(document.body, 'onmouseleave');
-		this.bindEvent(document.body, 'oncontextmenu');
-		this.bindEvent(window, 'onresize');
-	}
-	populateEvent(event) {
-		const {type} = event;
-		if(type === 'click' || type === 'mousedown' || type === 'mouseup' || type === 'mousemove' || type === 'mouseleave' || type === 'contextmenu') {
-			const {layerX, layerY} = event;
-			event.preventDefault();
-			return { event, ...this.view.get(layerX, layerY) };
-		}
-		return event;
+		this.bindEvent(this.canvas, 'click');
+		this.bindEvent(this.canvas, 'mousedown');
+		this.bindEvent(this.canvas, 'mouseup');
+		this.bindEvent(this.canvas, 'mousemove');
+		this.bindEvent(document.body, 'mouseleave');
+		this.bindEvent(document.body, 'contextmenu');
+		this.bindEvent(window, 'resize');
 	}
 	update() {
-		const {click, mousedown, mouseup, mousemove, mouseleave, contextmenu} = this.events;
-		if(click) {
-			const {button} = click.event;
-			if(button === 0) {
-				const {x, y} = click;
-				iterateGroup(this.state.groups.element, item => {
-					if(collidePoint(item, {x, y})) {
-						item.causeEvent(click);
-						return true;
-					}
-				});
-			}
-		}
-		if(mousedown) {
-			const {button, layerX, layerY} = mousedown.event;
-			if(button === 1) {
-				this.view.beginDrag(layerX, layerY);
-				this.cursor = 'move';
-			}
-			if(button === 0) {
-				const {x, y} = mousedown;
-				iterateGroup(this.state.groups.element, item => {
-					if(collidePoint(item, {x, y})) {
-						item.causeEvent(mousedown);
-						return true;
-					}
-				});
-			}
-		}
-		if(mousemove) {
-			const {x, y} = mousemove;
-			const {layerX, layerY} = mousemove.event;
-			this.view.drag(layerX, layerY);
-			this.state.mouse = { x, y };
-			if(!this.view.dragging) {
-				let cursor = null;
-				iterateGroup(this.state.groups.element, item => {
-					if(collidePoint(item, {x, y})) {
-						if(item instanceof Node) {
-							cursor = 'copy';
-						}
-						if(item.interactive) {
-							cursor = 'pointer';
-						}
-						return true;
-					}
-				});
-				this.cursor = cursor;
-			}
-		}
-		if(mouseup) {
-			const {button} = mouseup.event;
-			if(button === 1) {
-				this.view.endDrag();
-				this.state.mouse = null;
-			}
-			if(button === 0) {
-				iterateGroup(this.state.groups.element, item => {
-					item.causeEvent(mouseup);
-				});
-			}
-		}
-		if(mouseleave) {
-			this.view.endDrag();
-			this.state.mouse = null;
-		}
-		if(contextmenu) {
-			const {x, y} = contextmenu;
-			if(this.state.target) {
-				this.state.target = null;
-			}
-			else {
-				iterateGroup(this.state.groups.element, item => {
-					if(collidePoint(item, {x, y})) {
-						item.causeEvent(contextmenu);
-						return true;
-					}
-				});
-			}
-		}
 		const {groups} = this.state;
 		groups.element.update();
 		groups.wire.update();
+	}
+	onclick(event) {
+		const {button, layerX, layerY} = event;
+		if(button === 0) {
+			const {x, y} = this.view.get(layerX, layerY);
+			iterateGroup(this.state.groups.element, item => {
+				if(collidePoint(item, {x, y})) {
+					item.causeEvent('click', this.events);
+					return true;
+				}
+			});
+		}
+	}
+	onmousedown(event) {
+		const {button, layerX, layerY} = event;
+		if(button === 1) {
+			this.view.beginDrag(layerX, layerY);
+			this.cursor = 'move';
+		}
+		if(button === 0) {
+			const {x, y} = this.view.get(layerX, layerY);
+			iterateGroup(this.state.groups.element, item => {
+				if(collidePoint(item, {x, y})) {
+					item.causeEvent('mousedown', this.events);
+					return true;
+				}
+			});
+		}
+	}
+	onmousemove(event) {
+		const {layerX, layerY} = event;
+		const {x, y} = this.view.get(layerX, layerY);
+		this.view.drag(layerX, layerY);
+		this.state.mouse = { x, y };
+		if(!this.view.dragging) {
+			let cursor = null;
+			iterateGroup(this.state.groups.element, item => {
+				if(collidePoint(item, {x, y})) {
+					if(item instanceof Node) {
+						cursor = 'copy';
+					}
+					if(item.interactive) {
+						cursor = 'pointer';
+					}
+					return true;
+				}
+			});
+			this.cursor = cursor;
+		}
+	}
+	onmouseup(event) {
+		const {button, layerX, layerY} = event;
+		if(button === 1) {
+			this.view.endDrag();
+			this.state.mouse = null;
+		}
+		if(button === 0) {
+			iterateGroup(this.state.groups.element, item => {
+				item.causeEvent('mouseup', this.events);
+			});
+		}
+	}
+	onmouseleave() {
+		this.view.endDrag();
+		this.state.mouse = null;
+	}
+	oncontextmenu(event) {
+		const {layerX, layerY} = event;
+		const {x, y} = this.view.get(layerX, layerY);
+		if(this.state.target) {
+			this.state.target = null;
+		}
+		else {
+			iterateGroup(this.state.groups.element, item => {
+				if(collidePoint(item, {x, y})) {
+					item.causeEvent('contextmenu', this.events);
+					return true;
+				}
+			});
+		}
 	}
 	render(g) {
 		const {groups, target, mouse} = this.state;

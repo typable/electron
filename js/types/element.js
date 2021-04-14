@@ -1,5 +1,4 @@
 import { Surface, Shape } from '../deps.js';
-
 import { Node, Source } from './node.js';
 
 export class Element extends Surface {
@@ -46,14 +45,14 @@ export class Button extends Element {
 	}
 	update() {
 		super.update();
-		const {mousedown, mouseup} = this.events;
+	}
+	onmousedown() {
 		const {c} = this.symbols;
-		if(mousedown) {
-			c.active = true;
-		}
-		if(mouseup) {
-			c.active = false;
-		}
+		c.active = true;
+	}
+	onmouseup() {
+		const {c} = this.symbols;
+		c.active = false;
 	}
 	render(g) {
 		super.render(g);
