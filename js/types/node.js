@@ -1,11 +1,11 @@
-import { Surface, Shape } from '../deps.js';
+import GameEngine from '../deps.js';
 
 import { state } from '../app.js';
 import { Wire } from './wire.js';
 
-export class Node extends Surface {
+export class Node extends GameEngine.Surface {
 	constructor(x, y) {
-		super(x, y, new Shape.Circle(5));
+		super(x, y, new GameEngine.Shape.Circle(5));
 		this.on = false;
 		this.streams = [];
 		this.wires = [];

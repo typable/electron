@@ -1,4 +1,4 @@
-import { Game, Group, collidePoint } from './deps.js';
+import GameEngine, { Util } from './deps.js';
 
 import View from './view.js';
 import { Node, Element } from './type.js';
@@ -6,14 +6,14 @@ import { Node, Element } from './type.js';
 export let state = {
 	mode: 'view',
 	groups: {
-		element: new Group(),
-		wire: new Group()
+		element: new GameEngine.Group(),
+		wire: new GameEngine.Group()
 	},
 	target: null,
 	mouse: null
 };
 
-export class Electron extends Game {
+export class Electron extends GameEngine.Game {
 	constructor() {
 		super(window.innerWidth, window.innerHeight);
 		this.state = state;
@@ -36,7 +36,7 @@ export class Electron extends Game {
 		if(button === 0) {
 			const {x, y} = this.view.get(layerX, layerY);
 			iterateGroup(this.state.groups.element, item => {
-				if(collidePoint(item, {x, y})) {
+				if(Util.Collision.collidePoint(item, {x, y})) {
 					item.causeEvent('click', this.events);
 					return true;
 				}
@@ -52,7 +52,7 @@ export class Electron extends Game {
 		if(button === 0) {
 			const {x, y} = this.view.get(layerX, layerY);
 			iterateGroup(this.state.groups.element, item => {
-				if(collidePoint(item, {x, y})) {
+				if(Util.Collision.collidePoint(item, {x, y})) {
 					item.causeEvent('mousedown', this.events);
 					return true;
 				}
@@ -67,7 +67,7 @@ export class Electron extends Game {
 		if(!this.view.dragging) {
 			let cursor = null;
 			iterateGroup(this.state.groups.element, item => {
-				if(collidePoint(item, {x, y})) {
+				if(Util.Collision.collidePoint(item, {x, y})) {
 					if(item instanceof Node) {
 						cursor = 'copy';
 					}
@@ -104,7 +104,7 @@ export class Electron extends Game {
 		}
 		else {
 			iterateGroup(this.state.groups.element, item => {
-				if(collidePoint(item, {x, y})) {
+				if(Util.Collision.collidePoint(item, {x, y})) {
 					item.causeEvent('contextmenu', this.events);
 					return true;
 				}

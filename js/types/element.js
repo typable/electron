@@ -1,7 +1,7 @@
-import { Surface, Shape } from '../deps.js';
+import GameEngine from '../deps.js';
 import { Node, Source } from './node.js';
 
-export class Element extends Surface {
+export class Element extends GameEngine.Surface {
 	constructor(x, y, shape) {
 		super(x, y, shape);
 		this.nodes = [];
@@ -21,7 +21,7 @@ export class Element extends Surface {
 	}
 	render(g) {
 		const {x, y, shape} = this;
-		if(shape instanceof Shape.Rect) {
+		if(shape instanceof GameEngine.Shape.Rect) {
 			const {width, height} = shape;
 			g.fillStyle = 'lightgrey';
 			g.beginPath();
@@ -40,7 +40,7 @@ export class Element extends Surface {
 export class Button extends Element {
 	interactive = true;
 	constructor(x, y) {
-		super(x, y, new Shape.Rect(54, 54));
+		super(x, y, new GameEngine.Shape.Rect(54, 54));
 		this.add(new Source(x + 54, y + 27), 'c');
 	}
 	update() {
@@ -70,7 +70,7 @@ export class Button extends Element {
 
 export class Light extends Element {
 	constructor(x, y) {
-		super(x, y, new Shape.Circle(18));
+		super(x, y, new GameEngine.Shape.Circle(18));
 		this.add(new Node(x - 18, y), 'x');
 	}
 	render(g) {

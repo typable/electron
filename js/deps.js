@@ -1,2 +1,1 @@
-export * from 'https://git.typable.dev/std/js/game.js';
-export * from 'https://git.typable.dev/std/js/collision.js';
+export { default, Util } from 'https://raw.githack.com/typable/game-engine/develop/src/game-engine.js';

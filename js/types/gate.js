@@ -1,11 +1,11 @@
-import { Shape } from '../deps.js';
+import GameEngine from '../deps.js';
 
 import { Element } from './element.js';
 import { Node, Source } from './node.js';
 
 export class Gate extends Element {
 	constructor(x, y, width, height, name) {
-		super(x, y, new Shape.Rect(width, height));
+		super(x, y, new GameEngine.Shape.Rect(width, height));
 		this.name = name;
 	}
 	render(g) {
