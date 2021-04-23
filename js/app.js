@@ -22,6 +22,10 @@ export class Electron extends GameEngine.Game {
 			target: null,
 			mouse: null
 		};
+		document.body.addEventListener('contextmenu', function(event) {
+			event.preventDefault();
+			return false;
+		});
 	}
 	update() {
 		this.groups.element.update();
