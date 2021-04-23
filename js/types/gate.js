@@ -1,5 +1,4 @@
 import GameEngine from '../deps.js';
-
 import { Element } from './element.js';
 import { Node, Source } from './node.js';
 

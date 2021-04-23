@@ -1,6 +1,4 @@
 import GameEngine from '../deps.js';
-
-import { state } from '../app.js';
 import { Wire } from './wire.js';
 
 export class Node extends GameEngine.Surface {
@@ -22,6 +20,7 @@ export class Node extends GameEngine.Surface {
 		this.on = active;
 	}
 	onclick(event) {
+		const {state, groups} = GameEngine.instance;
 		const {button} = event;
 		if(button === 0) {
 			if(state.target) {
@@ -40,7 +39,7 @@ export class Node extends GameEngine.Surface {
 					}
 					if(unique) {
 						if(state.target !== this) {
-							state.groups.wire.add(new Wire(state.target, this));
+							groups.wire.add(new Wire(state.target, this));
 							state.target = null;
 						}
 					}
@@ -52,9 +51,10 @@ export class Node extends GameEngine.Surface {
 		}
 	}
 	oncontextmenu() {
+		const {groups} = GameEngine.instance;
 		for(const wire of this.wires) {
 			wire.eject(this);
-			state.groups.wire.remove(wire);
+			groups.wire.remove(wire);
 		}
 		this.wires = [];
 		if(!(this instanceof Source)) {
