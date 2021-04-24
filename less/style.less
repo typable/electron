@@ -5,8 +5,13 @@
 @import url('https://git.typable.dev/std/less/color.less');
 @import url('https://git.typable.dev/std/less/icons.less');
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700');
+
+* {
+	font-family: 'Roboto', sans-serif;
+}
 
 html,
 body {
@@ -15,4 +20,130 @@ body {
 
 canvas {
 	letter-spacing: 0.6px;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	background: @color-gray-800;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	height: 44px;
+
+	ul {
+		display: flex;
+		list-style-type: none;
+
+		.tool,
+		.action {
+			min-width: 44px;
+			height: 44px;
+			cursor: pointer;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			color: @color-gray-200;
+
+			.ico {
+				transform: scale(0.9);
+				margin: 10px;
+
+				&.ico--flip {
+					transform: scale(0.9) rotateZ(-90deg);
+				}
+			}
+
+			&:hover {
+				background: @color-gray-900;
+				color: white;
+			}
+
+			&.tool--active {
+				background: @color-gray-900;
+				color: white;
+			}
+
+			.title {
+				font-size: 14px;
+				user-select: none;
+			}
+		}
+
+		&.header__toolbar {
+			
+		}
+	
+		&.header__actions {
+	
+			.action-components {
+				width: 250px;
+				justify-content: space-between;
+				
+				.title {
+					padding-left: 16px;
+				}
+			}
+		}
+	}
+}
+
+.component-list {
+	width: 250px;
+	height: calc(100vh - 44px);
+	border-left: 1px solid @color-gray-200;
+	position: fixed;
+	right: 0;
+	bottom: 0;
+
+	.component-category {
+		display: flex;
+		flex-direction: column;
+		list-style-type: none;
+		width: 100%;
+
+		.component-category__label {
+			width: 100%;
+			font-size: 12px;
+			color: @color-gray-600;
+			padding: 0 16px;
+			margin-top: 30px;
+			margin-bottom: 8px;
+			user-select: none;
+		}
+
+		.component-item {
+			width: 100%;
+			height: 44px;
+			font-size: 14px;
+			font-weight: 500;
+			color: @color-gray-800;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			padding: 0 16px;
+			user-select: none;
+
+			&:hover {
+				background: @color-gray-100;
+
+				.ico {
+					visibility: visible;
+				}
+			}
+
+			justify-content: space-between;
+
+			.ico {
+				color: @color-gray-400;
+				visibility: hidden;
+
+				&:hover {
+					color: @color-gray-800;
+				}
+			}
+		}
+	}
 }
