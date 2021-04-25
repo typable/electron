@@ -6,6 +6,9 @@ export class Element extends GameEngine.Surface {
 		super(x, y, shape);
 		this.nodes = [];
 		this.symbols = {};
+		this.draggable = false;
+		this.offset;
+		this.nodes_offset = [];
 	}
 	add(node, symbol) {
 		this.nodes.push(node);
@@ -18,6 +21,44 @@ export class Element extends GameEngine.Surface {
 		for(const node of this.nodes) {
 			node.update();
 		}
+	}
+	onmousedown(event) {
+		const {mode, view} = GameEngine.instance.state;
+		const {x, y} = view.get(event.layerX, event.layerY);
+		if(mode === 'move') {
+			this.interactive = false;
+			this.draggable = true;
+			this.offset = {
+				x: this.x - x,
+				y: this.y - y
+			}
+			this.nodes.forEach((node) => {
+				let nodes_offset = {
+					x: x - node.x,
+					y: y - node.y
+				};
+				this.nodes_offset.push(nodes_offset);
+			});
+		}
+	}
+	onmousemove() {
+		if(this.draggable) {
+			const {x, y} = GameEngine.instance.state.mouse;
+			this.x = x + this.offset.x;
+			this.y = y + this.offset.y;
+			if(this.nodes_offset) {
+				this.nodes.forEach((node, index) => {
+					node.x = x - this.nodes_offset[index].x;
+					node.y = y - this.nodes_offset[index].y;
+				});
+			}
+		}
+	}
+	onmouseup() {
+		this.offset = [];
+		this.nodes_offset = [];
+		this.interactive = true;
+		this.draggable = false;
 	}
 	render(g) {
 		const {x, y, shape} = this;
@@ -38,7 +79,7 @@ export class Element extends GameEngine.Surface {
 }
 
 export class Button extends Element {
-	interactive = true;
+	interactive = false;
 	constructor(x, y) {
 		super(x, y, new GameEngine.Shape.Rect(54, 54));
 		this.add(new Source(x + 54, y + 27), 'c');
@@ -46,13 +87,19 @@ export class Button extends Element {
 	update() {
 		super.update();
 	}
-	onmousedown() {
+	onmousedown(event) {
+		super.onmousedown(event);
 		const {c} = this.symbols;
-		c.active = true;
+		if(this.interactive) {
+			c.active = true;
+		}
 	}
 	onmouseup() {
+		super.onmouseup();
 		const {c} = this.symbols;
-		c.active = false;
+		if(this.interactive) {
+			c.active = false;
+		}
 	}
 	render(g) {
 		super.render(g);
