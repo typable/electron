@@ -1,14 +1,11 @@
+import { html } from 'https://git.typable.dev/std/js/render.js';
+import GameEngine from './deps.js';
 import { Electron } from './app.js';
+import * as Components from './type.js';
 
 const app = new Electron();
 document.body.append(app.canvas);
 app.start();
-
-import { html } from 'https://git.typable.dev/std/js/render.js';
-import * as Components from './type.js';
-import GameEngine from './deps.js';
-
-const sidebar = document.querySelector('.component-list');
 
 const SelectCategory = ({label, components}) => {
 	return html`<ul class="component-category">
@@ -18,7 +15,7 @@ const SelectCategory = ({label, components}) => {
 };
 
 document.addEventListener('mouseup', () => {
-	sidebar.style.zIndex = "1";
+	sidebar.style.zIndex = '1';
 });
 
 const SelectItem = type => {
@@ -71,11 +68,13 @@ const SelectItem = type => {
 
 			app.groups.element.add(element);
 			down = false;
-			sidebar.style.zIndex = "-1";
+			sidebar.style.zIndex = '-1';
 		}
 	}
 	return html`<li class="component-item" onclick=${onClick} onmousedown=${onMouseDown} onmousemove=${onMouseMove}>
-		${type.name}
+		<span>${type.name}</span>
+		<i class="ico">bookmark_border</i>
+		<i class="ico">calendar_view_month</i>
 	</li>`;
 };
 
@@ -103,9 +102,6 @@ component.addEventListener('click', function() {
 	component.classList.toggle('action--active');
 	sidebar.classList.toggle('component-list--active');
 });
-
-
-import * as Components from './type.js';
 
 const {Node, Button} = Components;
 
