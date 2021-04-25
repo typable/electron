@@ -18,7 +18,7 @@ export class Gate extends Element {
 	}
 }
 
-export class NotGate extends Gate {
+export class NOTGate extends Gate {
 	constructor(x, y) {
 		super(x, y, 54, 54, 'NOT');
 		this.add(new Node(x, y + 27), 'x');
@@ -31,7 +31,7 @@ export class NotGate extends Gate {
 	}
 }
 
-export class AndGate extends Gate {
+export class ANDGate extends Gate {
 	constructor(x, y) {
 		super(x, y, 54, 54, 'AND');
 		this.add(new Node(x, y + 15), 'x');
@@ -45,7 +45,7 @@ export class AndGate extends Gate {
 	}
 }
 
-export class NandGate extends Gate {
+export class NANDGate extends Gate {
 	constructor(x, y) {
 		super(x, y, 54, 54, 'NAND');
 		this.add(new Node(x, y + 15), 'x');
@@ -59,7 +59,7 @@ export class NandGate extends Gate {
 	}
 }
 
-export class OrGate extends Gate {
+export class ORGate extends Gate {
 	constructor(x, y) {
 		super(x, y, 54, 54, 'OR');
 		this.add(new Node(x, y + 15), 'x');
@@ -73,7 +73,7 @@ export class OrGate extends Gate {
 	}
 }
 
-export class NorGate extends Gate {
+export class NORGate extends Gate {
 	constructor(x, y) {
 		super(x, y, 54, 54, 'NOR');
 		this.add(new Node(x, y + 15), 'x');
@@ -87,7 +87,7 @@ export class NorGate extends Gate {
 	}
 }
 
-export class XorGate extends Gate {
+export class XORGate extends Gate {
 	constructor(x, y) {
 		super(x, y, 54, 54, 'XOR');
 		this.add(new Node(x, y + 15), 'x');
@@ -101,7 +101,7 @@ export class XorGate extends Gate {
 	}
 }
 
-export class XnorGate extends Gate {
+export class XNORGate extends Gate {
 	constructor(x, y) {
 		super(x, y, 54, 54, 'XNOR');
 		this.add(new Node(x, y + 15), 'x');

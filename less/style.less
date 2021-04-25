@@ -48,21 +48,22 @@ canvas {
 			color: @color-gray-200;
 
 			.ico {
-				transform: scale(0.9);
+				transform: scale(0.85);
 				margin: 10px;
 
 				&.ico--flip {
-					transform: scale(0.9) rotateZ(-90deg);
+					transform: scale(0.85) rotate(-90deg);
 				}
 			}
 
 			&:hover {
-				background: @color-gray-900;
+				background: lighten(@color-gray-900, 5%);
 				color: white;
 			}
 
-			&.tool--active {
-				background: @color-gray-900;
+			&.tool--active,
+			&.action--active {
+				background: lighten(@color-gray-900, 5%);
 				color: white;
 			}
 
@@ -71,19 +72,23 @@ canvas {
 				user-select: none;
 			}
 		}
-
-		&.header__toolbar {
-			
-		}
 	
 		&.header__actions {
 	
 			.action-components {
 				width: 250px;
 				justify-content: space-between;
+				font-weight: 500;
 				
 				.title {
 					padding-left: 16px;
+				}
+			
+				&.action--active {
+			
+					.ico {
+						transform: scale(0.85) rotate(180deg);
+					}
 				}
 			}
 		}
@@ -98,6 +103,11 @@ canvas {
 	right: 0;
 	bottom: 0;
 	background-color: white;
+	visibility: hidden;
+
+	&.component-list--active {
+		visibility: visible;
+	}
 
 	.component-category {
 		display: flex;
@@ -108,9 +118,9 @@ canvas {
 		.component-category__label {
 			width: 100%;
 			font-size: 12px;
-			color: @color-gray-600;
+			color: @color-gray-500;
 			padding: 0 16px;
-			margin-top: 30px;
+			margin-top: 24px;
 			margin-bottom: 8px;
 			user-select: none;
 		}
@@ -135,11 +145,15 @@ canvas {
 				}
 			}
 
-			justify-content: space-between;
+			span {
+				flex: 1;
+			}
 
 			.ico {
 				color: @color-gray-400;
 				visibility: hidden;
+				justify-self: flex-end;
+				margin-left: 8px;
 
 				&:hover {
 					color: @color-gray-800;

@@ -31,6 +31,9 @@ export class Electron extends GameEngine.Game {
 		this.groups.element.update();
 		this.groups.wire.update();
 	}
+	onresize() {
+		this.resize(window.innerWidth, window.innerHeight);
+	}
 	onclick(event) {
 		const {button, layerX, layerY} = event;
 		if(button === 0) {
@@ -135,11 +138,6 @@ export class Electron extends GameEngine.Game {
 		g.moveTo(0, -20);
 		g.lineTo(0, 20);
 		g.stroke();
-		g.font = '500 14px Roboto';
-		g.textBaseline = 'top';
-		g.textAlign = 'left';
-		g.fillStyle = '#212121';
-		g.fillText(`X: ${-x}  Y: ${-y}`, x + 20, y + 20);
 	}
 	set cursor(type) {
 		this.canvas.style.cursor = type || '';
