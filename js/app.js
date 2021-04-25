@@ -7,9 +7,9 @@ export class Electron extends GameEngine.Game {
 		super(window.innerWidth, window.innerHeight);
 		this.view = new View(this);
 		this.bindEvent(this.canvas, 'click');
-		this.bindEvent(this.canvas, 'mousedown');
-		this.bindEvent(this.canvas, 'mouseup');
-		this.bindEvent(this.canvas, 'mousemove');
+		this.bindEvent(document.body, 'mousedown');
+		this.bindEvent(document.body, 'mouseup');
+		this.bindEvent(document.body, 'mousemove');
 		this.bindEvent(document.body, 'mouseleave');
 		this.bindEvent(document.body, 'contextmenu');
 		this.bindEvent(window, 'resize');
@@ -20,7 +20,8 @@ export class Electron extends GameEngine.Game {
 		this.state = {
 			mode: 'view',
 			target: null,
-			mouse: null
+			mouse: null,
+			view: this.view
 		};
 		document.body.addEventListener('contextmenu', function(event) {
 			event.preventDefault();
@@ -63,25 +64,28 @@ export class Electron extends GameEngine.Game {
 		}
 	}
 	onmousemove(event) {
-		const {layerX, layerY} = event;
-		const {x, y} = this.view.get(layerX, layerY);
-		this.view.drag(layerX, layerY);
+		const {pageX, pageY} = event;
+		const {x, y} = this.view.get(pageX, pageY);
+		this.view.drag(pageX, pageY);
 		this.state.mouse = { x, y };
 		if(!this.view.dragging) {
 			let cursor = null;
 			iterateGroup(this.groups.element, item => {
 				if(Util.Collision.collidePoint(item, {x, y})) {
-					if(item instanceof Node) {
-						cursor = 'copy';
+					if(this.state.mode !== 'move') {
+						if(item instanceof Node) {
+							cursor = 'copy';
+						}
+						if(item.interactive) {
+							cursor = 'pointer';
+						}
+						return true;
 					}
-					if(item.interactive) {
-						cursor = 'pointer';
-					}
-					return true;
 				}
 			});
 			this.cursor = cursor;
 		}
+		this.groups.element.causeEvent('mousemove', this.events);
 	}
 	onmouseup(event) {
 		const {button} = event;
