@@ -1,6 +1,4 @@
 import GameEngine from '../deps.js';
-
-import { state } from '../app.js';
 import { Wire } from './wire.js';
 
 export class Node extends GameEngine.Surface {
@@ -10,6 +8,8 @@ export class Node extends GameEngine.Surface {
 		this.streams = [];
 		this.wires = [];
 		this.parent = null;
+		this.draggable = false;
+		this.offset;
 	}
 	update() {
 		let active = false;
@@ -22,10 +22,11 @@ export class Node extends GameEngine.Surface {
 		this.on = active;
 	}
 	onclick(event) {
+		const {state, groups} = GameEngine.instance;
 		const {button} = event;
-		if(button === 0) {
+		if(button === 0 && state.mode !== 'move') {
 			if(state.target) {
-				if(state.target.parent !== this.parent) {
+				if(state.target.parent !== this.parent || state.target.parent === null && this.parent === null) {
 					let unique = true;
 					for(const wire of state.target.wires) {
 						const [begin, end] = wire.nodes;
@@ -40,7 +41,7 @@ export class Node extends GameEngine.Surface {
 					}
 					if(unique) {
 						if(state.target !== this) {
-							state.groups.wire.add(new Wire(state.target, this));
+							groups.wire.add(new Wire(state.target, this));
 							state.target = null;
 						}
 					}
@@ -51,10 +52,38 @@ export class Node extends GameEngine.Surface {
 			}
 		}
 	}
+	onmousedown(event) {
+		const {mode, view} = GameEngine.instance.state;
+		if(mode === 'move') {
+			const {x, y} = view.get(event.layerX, event.layerY);
+			this.draggable = true;
+			this.offset = {
+				x: this.x - x,
+				y: this.y - y
+			}
+		}
+	}
+	onmousemove() {
+		if(this.draggable) {
+			const {x, y} = GameEngine.instance.state.mouse;
+			this.x = x + this.offset.x;
+			this.y = y + this.offset.y;
+			if(this.nodes_offset) {
+				this.nodes.forEach((node, index) => {
+					node.x = x - this.nodes_offset[index].x;
+					node.y = y - this.nodes_offset[index].y;
+				});
+			}
+		}
+	}
+	onmouseup() {
+		this.draggable = false;
+	}
 	oncontextmenu() {
+		const {groups} = GameEngine.instance;
 		for(const wire of this.wires) {
 			wire.eject(this);
-			state.groups.wire.remove(wire);
+			groups.wire.remove(wire);
 		}
 		this.wires = [];
 		if(!(this instanceof Source)) {

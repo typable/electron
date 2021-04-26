@@ -1,41 +1,45 @@
 import GameEngine, { Util } from './deps.js';
-
 import View from './view.js';
 import { Node, Element } from './type.js';
-
-export let state = {
-	mode: 'view',
-	groups: {
-		element: new GameEngine.Group(),
-		wire: new GameEngine.Group()
-	},
-	target: null,
-	mouse: null
-};
 
 export class Electron extends GameEngine.Game {
 	constructor() {
 		super(window.innerWidth, window.innerHeight);
-		this.state = state;
 		this.view = new View(this);
 		this.bindEvent(this.canvas, 'click');
-		this.bindEvent(this.canvas, 'mousedown');
-		this.bindEvent(this.canvas, 'mouseup');
-		this.bindEvent(this.canvas, 'mousemove');
+		this.bindEvent(document.body, 'mousedown');
+		this.bindEvent(document.body, 'mouseup');
+		this.bindEvent(document.body, 'mousemove');
 		this.bindEvent(document.body, 'mouseleave');
 		this.bindEvent(document.body, 'contextmenu');
 		this.bindEvent(window, 'resize');
+		this.groups = {
+			element: new GameEngine.Group(),
+			wire: new GameEngine.Group()
+		},
+		this.state = {
+			mode: 'view',
+			target: null,
+			mouse: null,
+			view: this.view
+		};
+		document.body.addEventListener('contextmenu', function(event) {
+			event.preventDefault();
+			return false;
+		});
 	}
 	update() {
-		const {groups} = this.state;
-		groups.element.update();
-		groups.wire.update();
+		this.groups.element.update();
+		this.groups.wire.update();
+	}
+	onresize() {
+		this.resize(window.innerWidth, window.innerHeight);
 	}
 	onclick(event) {
 		const {button, layerX, layerY} = event;
 		if(button === 0) {
 			const {x, y} = this.view.get(layerX, layerY);
-			iterateGroup(this.state.groups.element, item => {
+			iterateGroup(this.groups.element, item => {
 				if(Util.Collision.collidePoint(item, {x, y})) {
 					item.causeEvent('click', this.events);
 					return true;
@@ -51,7 +55,7 @@ export class Electron extends GameEngine.Game {
 		}
 		if(button === 0) {
 			const {x, y} = this.view.get(layerX, layerY);
-			iterateGroup(this.state.groups.element, item => {
+			iterateGroup(this.groups.element, item => {
 				if(Util.Collision.collidePoint(item, {x, y})) {
 					item.causeEvent('mousedown', this.events);
 					return true;
@@ -60,34 +64,46 @@ export class Electron extends GameEngine.Game {
 		}
 	}
 	onmousemove(event) {
-		const {layerX, layerY} = event;
-		const {x, y} = this.view.get(layerX, layerY);
-		this.view.drag(layerX, layerY);
+		const {pageX, pageY} = event;
+		const {x, y} = this.view.get(pageX, pageY);
+		this.view.drag(pageX, pageY);
 		this.state.mouse = { x, y };
 		if(!this.view.dragging) {
 			let cursor = null;
-			iterateGroup(this.state.groups.element, item => {
+			iterateGroup(this.groups.element, item => {
 				if(Util.Collision.collidePoint(item, {x, y})) {
-					if(item instanceof Node) {
-						cursor = 'copy';
+					if(this.state.mode === 'view') {
+						if(item instanceof Node) {
+							cursor = 'copy';
+						}
+						if(item.interactive) {
+							cursor = 'pointer';
+						}
+						return true;
 					}
-					if(item.interactive) {
-						cursor = 'pointer';
+					if(this.state.mode === 'move') {
+						if(item.draggable !== undefined) {
+							cursor = 'grab';
+							if(item.draggable) {
+								cursor = 'grabbing';
+							}
+						}
+						return true;
 					}
-					return true;
 				}
 			});
 			this.cursor = cursor;
 		}
+		this.groups.element.causeEvent('mousemove', this.events);
 	}
 	onmouseup(event) {
-		const {button, layerX, layerY} = event;
+		const {button} = event;
 		if(button === 1) {
 			this.view.endDrag();
 			this.state.mouse = null;
 		}
 		if(button === 0) {
-			iterateGroup(this.state.groups.element, item => {
+			iterateGroup(this.groups.element, item => {
 				item.causeEvent('mouseup', this.events);
 			});
 		}
@@ -103,7 +119,7 @@ export class Electron extends GameEngine.Game {
 			this.state.target = null;
 		}
 		else {
-			iterateGroup(this.state.groups.element, item => {
+			iterateGroup(this.groups.element, item => {
 				if(Util.Collision.collidePoint(item, {x, y})) {
 					item.causeEvent('contextmenu', this.events);
 					return true;
@@ -112,7 +128,7 @@ export class Electron extends GameEngine.Game {
 		}
 	}
 	render(g) {
-		const {groups, target, mouse} = this.state;
+		const {target, mouse} = this.state;
 		const {x, y, width, height} = this.view.getView();
 		g.clearRect(x, y, width, height);
 		if(target instanceof Node && mouse) {
@@ -121,8 +137,8 @@ export class Electron extends GameEngine.Game {
 			g.lineTo(mouse.x, mouse.y);
 			g.stroke();
 		}
-		groups.wire.render(g);
-		groups.element.render(g);
+		this.groups.wire.render(g);
+		this.groups.element.render(g);
 		g.strokeStyle = '#999';
 		g.beginPath();
 		g.arc(0, 0, 6, 2 * Math.PI, 0);
@@ -135,11 +151,6 @@ export class Electron extends GameEngine.Game {
 		g.moveTo(0, -20);
 		g.lineTo(0, 20);
 		g.stroke();
-		g.font = '500 14px Roboto';
-		g.textBaseline = 'top';
-		g.textAlign = 'left';
-		g.fillStyle = '#212121';
-		g.fillText(`X: ${-x}  Y: ${-y}`, x + 20, y + 20);
 	}
 	set cursor(type) {
 		this.canvas.style.cursor = type || '';
