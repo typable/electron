@@ -26,7 +26,9 @@ export class Element extends GameEngine.Surface {
 		const {mode, view} = GameEngine.instance.state;
 		const {x, y} = view.get(event.layerX, event.layerY);
 		if(mode === 'move') {
-			this.interactive = false;
+			if(this.interactive !== undefined) {
+				this.interactive = false;
+			}
 			this.draggable = true;
 			this.offset = {
 				x: this.x - x,
@@ -57,7 +59,9 @@ export class Element extends GameEngine.Surface {
 	onmouseup() {
 		this.offset = [];
 		this.nodes_offset = [];
-		this.interactive = true;
+		if(this.interactive !== undefined) {
+			this.interactive = true;
+		}
 		this.draggable = false;
 	}
 	render(g) {

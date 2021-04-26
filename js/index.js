@@ -16,6 +16,9 @@ const SelectCategory = ({label, components}) => {
 
 document.addEventListener('mouseup', () => {
 	sidebar.style.zIndex = '1';
+	if(app.state.mode = 'move') {
+		app.state.mode = 'view';
+	}
 });
 
 const SelectItem = type => {
@@ -30,12 +33,17 @@ const SelectItem = type => {
 	};
 	const onMouseDown = () => {
 		down = true;
+		if(app.state.mode = 'view') {
+			app.state.mode = 'move';
+		}
 	}
 	const onMouseMove = (event) => {
 		if(down) {
 			const {x, y} = app.view.get(event.pageX, event.pageY);
 			const element = new type(x, y);
-			element.interactive = false;
+			if(element.interactive !== undefined) {
+				element.interactive = false;
+			}
 			element.draggable = true;
 			if(element.shape instanceof GameEngine.Shape.Rect) {	
 				element.offset = {
@@ -94,6 +102,25 @@ for(const tool of tools) {
 		}
 	});
 }
+
+document.addEventListener('keyup', (event)=> {
+	for(const tool of tools) {
+		if(event.code === 'KeyV') {
+			if(tool === view) {
+				tools.forEach(n => n.classList.remove('tool--active'));
+				tool.classList.add('tool--active');
+				app.state.mode = 'view';
+			}
+		}
+		if(event.code === 'KeyM') {
+			if(tool === move) {
+				tools.forEach(n => n.classList.remove('tool--active'));
+				tool.classList.add('tool--active');
+				app.state.mode = 'move';
+			}
+		}
+	}
+});
 
 const component = document.querySelector('.action-components');
 const sidebar = document.querySelector('.component-list');

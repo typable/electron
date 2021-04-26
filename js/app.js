@@ -72,12 +72,21 @@ export class Electron extends GameEngine.Game {
 			let cursor = null;
 			iterateGroup(this.groups.element, item => {
 				if(Util.Collision.collidePoint(item, {x, y})) {
-					if(this.state.mode !== 'move') {
+					if(this.state.mode === 'view') {
 						if(item instanceof Node) {
 							cursor = 'copy';
 						}
 						if(item.interactive) {
 							cursor = 'pointer';
+						}
+						return true;
+					}
+					if(this.state.mode === 'move') {
+						if(item.draggable !== undefined) {
+							cursor = 'grab';
+							if(item.draggable) {
+								cursor = 'grabbing';
+							}
 						}
 						return true;
 					}
