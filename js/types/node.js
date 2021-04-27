@@ -24,7 +24,7 @@ export class Node extends GameEngine.Surface {
 	onclick(event) {
 		const {state, groups} = GameEngine.instance;
 		const {button} = event;
-		if(button === 0 && state.mode !== 'move') {
+		if(button === 0 && state.mode === 'view') {
 			if(state.target) {
 				if(state.target.parent !== this.parent || state.target.parent === null && this.parent === null) {
 					let unique = true;

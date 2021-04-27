@@ -6,6 +6,7 @@ import * as Components from './type.js';
 const app = new Electron();
 document.body.append(app.canvas);
 app.start();
+let mode;
 
 const SelectCategory = ({label, components}) => {
 	return html`<ul class="component-category">
@@ -15,10 +16,10 @@ const SelectCategory = ({label, components}) => {
 };
 
 document.addEventListener('mouseup', () => {
-	sidebar.style.zIndex = '1';
-	if(app.state.mode = 'move') {
-		app.state.mode = 'view';
+	if(app.state.mode === 'move' && sidebar.style.zIndex === '-1') {
+		app.state.mode = mode;
 	}
+	sidebar.style.zIndex = '1';
 });
 
 const SelectItem = type => {
@@ -33,7 +34,8 @@ const SelectItem = type => {
 	};
 	const onMouseDown = () => {
 		down = true;
-		if(app.state.mode = 'view') {
+		mode = app.state.mode;
+		if(mode === 'view') {
 			app.state.mode = 'move';
 		}
 	}

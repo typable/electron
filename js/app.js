@@ -84,12 +84,12 @@ export class Electron extends GameEngine.Game {
 					if(this.state.mode === 'move') {
 						if(item.draggable !== undefined) {
 							cursor = 'grab';
-							if(item.draggable) {
-								cursor = 'grabbing';
-							}
 						}
 						return true;
 					}
+				}
+				if(item.draggable) {
+					cursor = 'grabbing';
 				}
 			});
 			this.cursor = cursor;
