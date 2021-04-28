@@ -1,4 +1,4 @@
-import { html } from 'https://git.typable.dev/std/js/render.js';
+import { html } from 'https://raw.githack.com/typable/html-build/main/render.js';
 import GameEngine from './deps.js';
 import { Electron } from './app.js';
 import * as Components from './type.js';
