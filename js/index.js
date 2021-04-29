@@ -41,7 +41,7 @@ const SelectCategory = ({label, components}) => {
 	</ul>`;
 };
 
-const SelectItem = (type, isBookmark = false) => {
+const SelectItem = type => {
 	let down = false;
 	const onClick = () => {
 		if(down) {
