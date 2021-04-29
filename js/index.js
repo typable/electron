@@ -8,13 +8,6 @@ document.body.append(app.canvas);
 app.start();
 let mode;
 
-const SelectCategory = ({label, components}) => {
-	return html`<ul class="component-category">
-		<span class="component-category__label">${label}</span>
-		${components}
-	</ul>`;
-};
-
 document.addEventListener('mouseup', () => {
 	if(app.state.mode === 'move' && sidebar.style.zIndex === '-1') {
 		app.state.mode = mode;
@@ -22,7 +15,33 @@ document.addEventListener('mouseup', () => {
 	sidebar.style.zIndex = '1';
 });
 
-const SelectItem = type => {
+document.addEventListener('keydown', event => {
+	for(const tool of tools) {
+		if(event.code === 'KeyV') {
+			if(tool === view) {
+				tools.forEach(n => n.classList.remove('tool--active'));
+				tool.classList.add('tool--active');
+				app.state.mode = 'view';
+			}
+		}
+		if(event.code === 'KeyM') {
+			if(tool === move) {
+				tools.forEach(n => n.classList.remove('tool--active'));
+				tool.classList.add('tool--active');
+				app.state.mode = 'move';
+			}
+		}
+	}
+});
+
+const SelectCategory = ({label, components}) => {
+	return html`<ul class="component-category">
+		<span class="component-category__label">${label}</span>
+		${components}
+	</ul>`;
+};
+
+const SelectItem = (type, isBookmark = false) => {
 	let down = false;
 	const onClick = () => {
 		if(down) {
@@ -39,7 +58,7 @@ const SelectItem = type => {
 			app.state.mode = 'move';
 		}
 	}
-	const onMouseMove = (event) => {
+	const onMouseMove = event => {
 		if(down) {
 			const {x, y} = app.view.get(event.pageX, event.pageY);
 			const element = new type(x, y);
@@ -104,25 +123,6 @@ for(const tool of tools) {
 		}
 	});
 }
-
-document.addEventListener('keyup', (event)=> {
-	for(const tool of tools) {
-		if(event.code === 'KeyV') {
-			if(tool === view) {
-				tools.forEach(n => n.classList.remove('tool--active'));
-				tool.classList.add('tool--active');
-				app.state.mode = 'view';
-			}
-		}
-		if(event.code === 'KeyM') {
-			if(tool === move) {
-				tools.forEach(n => n.classList.remove('tool--active'));
-				tool.classList.add('tool--active');
-				app.state.mode = 'move';
-			}
-		}
-	}
-});
 
 const component = document.querySelector('.action-components');
 const sidebar = document.querySelector('.component-list');
